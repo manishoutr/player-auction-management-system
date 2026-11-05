@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIJAY CUP 2026 - Auction Operator</title>
+<style>
+@font-face{font-family:'Anton';src:url('assets/Anton.ttf') format('truetype');font-display:swap;}
+@font-face{font-family:'BC';src:url('assets/BarlowCondensed-SemiBold.ttf') format('truetype');font-weight:600;font-display:swap;}
+@font-face{font-family:'BC';src:url('assets/BarlowCondensed-Bold.ttf') format('truetype');font-weight:700;font-display:swap;}
+@font-face{font-family:'Inter';src:url('assets/Inter.ttf') format('truetype');font-display:swap;}
+:root{
+  --navy-0:#070c1e; --navy-1:#0d1530; --navy-2:#14204a; --navy-3:#1d2d63;
+  --gold-0:#9a7420; --gold-1:#e3b736; --gold-2:#f6dc8a;
+  --ink:#eef1fa; --ink-dim:#8b97bb; --line:rgba(227,183,54,.26);
+  --ok:#57d98a; --warn:#ffb454; --bad:#ff6a5e;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',"Helvetica Neue",Arial,sans-serif;}
+html,body{height:100%;background:var(--navy-0);color:var(--ink);}
+body{display:flex;flex-direction:column;font-size:14px;}
+button{cursor:pointer;}
+button:disabled{opacity:.38;cursor:not-allowed;}
+header{flex:none;display:flex;align-items:center;gap:12px;padding:8px 16px;background:linear-gradient(180deg,#101d47,#0a1330);border-bottom:2px solid var(--line);}
+header img.shield{height:38px;width:38px;border-radius:50%;border:2px solid var(--gold-1);background:#fff;}
+header .ttl{font-family:'Anton';font-size:19px;letter-spacing:.05em;color:var(--gold-2);}
+header .ttl small{display:block;font-family:'BC';font-weight:600;font-size:10px;letter-spacing:.30em;color:var(--ink-dim);}
+.laytoggle{margin-left:auto;display:flex;gap:8px;align-items:center;}
+.laytoggle .lab{font-size:10px;letter-spacing:.2em;color:var(--ink-dim);}
+.lbtn{border:1px solid var(--line);background:var(--navy-2);color:var(--ink);border-radius:8px;padding:8px 14px;font-family:'BC';font-weight:700;font-size:15px;letter-spacing:.10em;}
+.lbtn.on{background:linear-gradient(180deg,#f6e2a0,#e3b736);color:#1a1405;border-color:#ffe9a8;}
+.dotlive{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);margin-left:10px;}
+main{flex:1;display:grid;grid-template-columns:300px 1fr 320px;gap:10px;padding:10px;min-height:0;}
+section{background:var(--navy-1);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;min-height:0;gap:10px;overflow-y:auto;overflow-x:hidden;}
+h2{font-family:'BC';font-weight:600;font-size:13px;letter-spacing:.30em;color:var(--ink-dim);}
+.pcur{display:flex;gap:10px;align-items:center;background:var(--navy-2);border:1px solid var(--line);border-radius:10px;padding:8px;}
+.pcur img{width:64px;height:64px;object-fit:cover;object-position:top;border-radius:8px;background:#23377a;border:1px solid var(--line);}
+.pcur .sil{width:64px;height:64px;border-radius:8px;background:#23377a;border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--ink-dim);text-align:center;}
+.pcur .nm{font-family:'Anton';font-size:19px;letter-spacing:.03em;text-transform:uppercase;}
+.pcur .mt{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+.settag{display:inline-block;background:linear-gradient(180deg,#f6e2a0,#e3b736);color:#1a1405;border:none;border-radius:5px;font-family:'BC';font-size:12px;font-weight:700;padding:1px 8px;margin-right:5px;cursor:pointer;}
+.qnav{display:flex;gap:8px;}
+.qnav button{flex:1;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--navy-3);color:var(--ink);font-family:'BC';font-weight:700;font-size:15px;letter-spacing:.08em;}
+.search{padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--navy-0);color:var(--ink);outline:none;}
+.queue{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:4px;min-height:0;}
+.qrow{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;background:var(--navy-2);border:1px solid transparent;font-size:12.5px;cursor:pointer;}
+.qrow:hover{border-color:var(--line);}
+.qrow .no{width:30px;color:var(--ink-dim);font-variant-numeric:tabular-nums;}
+.qrow .qn{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.qrow .st{font-size:9.5px;font-weight:800;letter-spacing:.08em;padding:2px 7px;border-radius:5px;}
+.qrow.cur{border-color:var(--gold-1);box-shadow:0 0 10px rgba(227,183,54,.25);}
+.qrow.cur .st{background:var(--gold-1);color:#1a1405;}
+.qrow.sold{opacity:.62}.qrow.sold .st{background:rgba(87,217,138,.15);color:var(--ok);}
+.qrow.unsold{opacity:.62}.qrow.unsold .st{background:rgba(201,210,224,.12);color:#c9d2e0;}
+.qrow.excluded{opacity:.4}.qrow.excluded .st{background:rgba(255,106,94,.15);color:var(--bad);}
+.qrow.dup .qn::after{content:" ⚠";color:var(--warn);}
+/* centre */
+.bidnow{background:var(--navy-2);border:1px solid var(--line);border-radius:10px;padding:10px 14px;text-align:center;}
+.bidnow .lab{font-family:'BC';font-weight:600;font-size:11px;letter-spacing:.30em;color:var(--ink-dim);}
+.bidnow .amt{font-family:'Anton';font-size:52px;color:var(--gold-2);font-variant-numeric:tabular-nums;line-height:1.05;}
+.bidnow .lead{font-size:12px;color:var(--ink-dim);margin-top:2px;}
+.bidnow .lead b{color:var(--gold-1);}
+.teamgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;}
+.teamgrid button{position:relative;padding:12px 4px 10px;border-radius:8px;border:1px solid var(--line);background:var(--navy-2);color:var(--ink);font-family:'BC';font-weight:700;font-size:16px;letter-spacing:.08em;}
+.teamgrid button img.tlogo{display:block;height:30px;width:30px;object-fit:cover;border-radius:50%;margin:0 auto 4px;}
+.teamgrid button .key{position:absolute;top:3px;right:5px;font-family:'Inter';font-size:9px;font-weight:700;color:var(--ink-dim);border:1px solid var(--line);border-radius:3px;padding:0 3px;}
+.teamgrid button.picked{outline:2px solid #fff;outline-offset:1px;}
+.teamgrid button.picked .key{color:#fff;border-color:#fff;}
+.teamgrid button.leader{background:linear-gradient(180deg,#f6e2a0,#e3b736);color:#1a1405;border-color:#ffe9a8;}
+.teamgrid button.leader .key{color:#1a1405;border-color:rgba(0,0,0,.35);}
+.adv{font-size:12px;line-height:1.45;border-radius:8px;padding:6px 10px;margin:6px 0 2px;border:1px solid var(--line);display:none;}
+.adv.show{display:block;}
+.adv.ok{border-color:rgba(60,200,120,.5);color:var(--ink);}
+.adv.amber{border-color:#e3b736;background:rgba(227,183,54,.12);color:#ffe9a8;}
+.adv.red{border-color:#ff5d5d;background:rgba(255,93,93,.12);color:#ffd0d0;}
+.adv b{letter-spacing:.06em;}
+.sqctl{display:none;gap:6px;align-items:center;}
+.sqctl.show{display:flex;}
+.lbtn.sm{padding:6px 9px;font-size:13px;}
+.ckrow{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.5;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.ckrow .st{width:22px;flex:none;font-weight:700;}
+.ckrow .ok{color:var(--ok);} .ckrow .no{color:var(--bad);} .ckrow .wn{color:var(--warn);}
+.ckrow small{display:block;color:var(--ink-dim);font-size:11.5px;}
+.sttab{width:100%;border-collapse:collapse;font-size:13px;}
+.sttab td,.sttab th{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.07);text-align:right;}
+.sttab td:first-child,.sttab th:first-child{text-align:left;}
+.sttab th{color:var(--ink-dim);font-size:11px;letter-spacing:.14em;}
+.stgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.stgrid div{background:var(--navy-2);border:1px solid var(--line);border-radius:8px;padding:8px;text-align:center;}
+.stgrid b{display:block;font-size:20px;color:var(--gold-2);}
+.stgrid span{font-size:10.5px;letter-spacing:.14em;color:var(--ink-dim);}
+.hintline{font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em;text-align:center;margin-top:-4px;}
+.incs{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+.incs button{padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--navy-3);color:var(--gold-2);font-family:'BC';font-weight:700;font-size:19px;letter-spacing:.05em;}
+.incs button.neg{color:var(--bad);}
+.nextbid{padding:15px;border:none;border-radius:10px;font-family:'Anton';font-size:24px;letter-spacing:.04em;
+  background:linear-gradient(180deg,#f6e2a0,#e3b736 60%,#b8902a);color:#151002;box-shadow:0 6px 22px rgba(227,183,54,.35);}
+.timerbox{display:flex;align-items:center;gap:10px;background:var(--navy-2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;}
+.timerbox .t{font-family:'Anton';font-size:34px;font-variant-numeric:tabular-nums;}
+.timerbox .t.low{color:var(--bad);}
+.timerbox button{padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--navy-3);color:var(--ink);font-family:'BC';font-weight:700;font-size:13px;letter-spacing:.06em;}
+.timerbox .note{margin-left:auto;font-size:10px;color:var(--ink-dim);letter-spacing:.12em;}
+.bigactions{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.bigactions .sold{padding:18px;border:none;border-radius:10px;font-family:'Anton';font-size:26px;letter-spacing:.06em;
+  background:linear-gradient(180deg,#f6e2a0,#e3b736 55%,#b8902a);color:#151002;box-shadow:0 6px 20px rgba(227,183,54,.35);}
+.bigactions .unsold{padding:18px;border-radius:10px;font-family:'Anton';font-size:26px;letter-spacing:.06em;background:transparent;color:#c9d2e0;border:2px solid #6b7694;}
+.subactions{display:flex;gap:8px;}
+.subactions button{flex:1;padding:9px;border-radius:8px;border:1px solid var(--line);background:var(--navy-2);color:var(--ink-dim);font-family:'BC';font-weight:600;font-size:13px;letter-spacing:.08em;}
+/* right */
+.purses{flex:none;display:flex;flex-direction:column;gap:4px;}
+.prow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:6px 9px;border-radius:7px;background:var(--navy-2);font-size:12.5px;cursor:pointer;}
+.prow:hover{border:1px solid var(--line);}
+.prow .p{font-family:'BC';font-weight:700;font-size:15px;color:var(--gold-2);font-variant-numeric:tabular-nums;}
+.prow .sq{color:var(--ink-dim);font-size:11px;}
+.prow.head{background:none;color:var(--ink-dim);font-size:9.5px;letter-spacing:.18em;padding:2px 9px;cursor:default;}
+.prow.leaderteam{outline:1px solid var(--gold-1);}
+.log{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:5px;min-height:0;}
+.logrow{font-size:11.5px;color:var(--ink-dim);border-left:2px solid var(--line);padding:4px 8px;}
+.logrow b{color:var(--ink);}
+.logrow.gold{border-color:var(--gold-1);}
+.logrow.gold b{color:var(--gold-2);}
+.logrow.warn{border-color:var(--warn);}
+footer{flex:none;display:flex;gap:8px;align-items:center;padding:8px 16px;border-top:1px solid var(--line);background:var(--navy-1);}
+footer button{padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--navy-2);color:var(--ink);font-family:'BC';font-weight:600;font-size:13px;letter-spacing:.06em;}
+footer .danger{color:var(--bad);margin-left:auto;}
+footer .stat{font-size:11px;color:var(--ink-dim);margin-left:10px;}
+/* setup modal */
+.modal{position:fixed;inset:0;background:rgba(4,8,20,.8);display:none;align-items:center;justify-content:center;z-index:100;}
+.modal.open{display:flex;}
+.mcard{width:640px;max-height:86vh;overflow-y:auto;background:var(--navy-1);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;}
+.mcard h2{font-size:15px;}
+.mrow{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.mrow label,.mfull label{display:block;font-size:10px;letter-spacing:.14em;color:var(--ink-dim);margin-bottom:3px;text-transform:uppercase;}
+.mcard input[type=text],.mcard input[type=number]{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--navy-0);color:var(--ink);outline:none;}
+.mfull{margin-bottom:8px;}
+.mbtns{display:flex;gap:8px;flex-wrap:wrap;}
+.mbtns button{padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--navy-3);color:var(--ink);font-family:'BC';font-weight:700;font-size:14px;letter-spacing:.06em;}
+.mbtns .primary{background:linear-gradient(180deg,#f6e2a0,#e3b736);color:#1a1405;border:none;}
+.checkrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#3a1210;border:1px solid var(--bad);color:#ffd9d4;
+  padding:10px 18px;border-radius:10px;font-size:13px;display:none;z-index:200;}
+/* short screens (Windows laptops at 100% zoom): compress so SOLD/UNSOLD stay reachable */
+@media (max-height:840px){
+  header{padding:5px 12px;} header img.shield{height:30px;width:30px;} header .ttl{font-size:16px;}
+  main{gap:8px;padding:8px;}
+  section{padding:9px;gap:7px;}
+  h2{font-size:11px;}
+  .bidnow{padding:7px 12px;} .bidnow .amt{font-size:38px;}
+  .teamgrid button{padding:7px 3px 6px;font-size:14px;}
+  .incs button{padding:8px;font-size:16px;}
+  .nextbid{padding:10px;font-size:19px;}
+  .timerbox{padding:5px 10px;} .timerbox .t{font-size:26px;} .timerbox button{padding:6px 9px;font-size:12px;}
+  .bigactions .sold,.bigactions .unsold{padding:10px;font-size:20px;}
+  .subactions button{padding:6px;font-size:12px;}
+  .pcur img,.pcur .sil{width:48px;height:48px;} .pcur .nm{font-size:16px;}
+  .qrow{padding:5px 8px;font-size:12px;}
+  footer{padding:6px 12px;} footer button{padding:6px 9px;font-size:12px;}
+}
+/* narrow windows: slimmer columns */
+@media (max-width:1220px){ main{grid-template-columns:250px 1fr 270px;} }
+/* very narrow: stack sections, page scrolls - nothing is ever unreachable */
+@media (max-width:980px){
+  body{display:block;overflow-y:auto;}
+  main{grid-template-columns:1fr;display:flex;flex-direction:column;}
+  section{overflow:visible;flex:none;}
+  .queue{max-height:260px;}
+  .log{max-height:220px;}
+}
+/* ---- team sheets print view ---- */
+#sheetsPrint{display:none;}
+@media print{
+  body>*{display:none !important;}
+  #sheetsPrint{display:block !important;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;}
+}
+.sheet{page-break-after:always;padding:34px 40px;}
+.sheet:last-child{page-break-after:auto;}
+.sh-head{display:flex;align-items:center;gap:14px;border-bottom:3px solid #b8860b;padding-bottom:10px;}
+.sh-head img{height:52px;}
+.sh-head .t{font-size:22px;font-weight:800;letter-spacing:.04em;}
+.sh-head .s{font-size:11px;letter-spacing:.24em;color:#8a6d1f;font-weight:700;}
+.sh-team{margin:16px 0 4px;font-size:30px;font-weight:800;text-transform:uppercase;}
+.sh-meta{font-size:13px;color:#444;margin-bottom:12px;}
+.sh-meta b{color:#b8860b;}
+table.sh-tab{width:100%;border-collapse:collapse;font-size:13px;}
+.sh-tab th{background:#10203f;color:#fff;text-align:left;padding:7px 10px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;}
+.sh-tab td{padding:6px 10px;border-bottom:1px solid #ddd;}
+.sh-tab tr:nth-child(even) td{background:#f6f7f9;}
+.sh-tab .pr{text-align:right;font-weight:700;font-variant-numeric:tabular-nums;}
+.sh-foot{margin-top:14px;font-size:12px;color:#555;display:flex;justify-content:space-between;}
+.sh-empty{padding:18px;font-size:13px;color:#777;font-style:italic;}
+.sh-wm{position:fixed;top:46%;left:18%;font-size:64px;font-weight:800;color:rgba(0,0,0,.06);transform:rotate(-24deg);letter-spacing:.1em;}
+</style>
+</head>
+<body>
+<header>
+  <img class="shield" src="assets/shield.jpg" alt="">
+  <div class="ttl">BIJAY CUP 2026<small>AUCTION OPERATOR</small></div>
+  <div class="laytoggle">
+    <span class="lab">LED SHOWING</span>
+    <button class="lbtn" id="layA">A · LIVE AUCTION</button>
+    <button class="lbtn" id="layB">B · PURSE BOARD</button>
+    <button class="lbtn" id="layW">WELCOME</button>
+    <button class="lbtn" id="layX">BREAK</button>
+    <button class="lbtn" id="layN">COMING UP</button>
+    <button class="lbtn" id="layT">STATS</button>
+    <button class="lbtn" id="layP">SPENDING</button>
+    <button class="lbtn" id="closingB">🏁 CLOSING ▸</button>
+    <span class="sqctl" id="sqCtl"><button class="lbtn sm" id="sqSortB">SORT: #</button><button class="lbtn sm" id="sqPrevB">◀ PAGE</button><button class="lbtn sm" id="sqNextB">PAGE ▶</button></span>
+    <span class="dotlive" id="ledDot" title="LED display status"></span>
+    <span class="lab" id="ledTxt">LED…</span>
+    <button class="lbtn sm" id="bkChip" title="Time since the last backup file you downloaded from this laptop. Click to download a backup now.">BACKUP…</button>
+  </div>
+</header>
+<main>
+  <section>
+    <h2>CURRENT PLAYER</h2>
+    <div class="pcur" id="pcur"></div>
+    <div class="qnav"><button id="prevB">◀ PREV</button><button id="nextB">NEXT ▶</button></div>
+    <input class="search" id="search" placeholder="Search name / reg no / auction no…">
+    <h2 id="queueH">QUEUE</h2>
+    <div class="queue" id="queue"></div>
+  </section>
+  <section>
+    <h2 id="bidH">BIDDING</h2>
+    <div class="bidnow">
+      <div class="lab">CURRENT BID</div>
+      <div class="amt" id="bidAmt">—</div>
+      <div class="lead" id="bidLead">no bid yet</div>
+    </div>
+    <h2>1 · TEAM (PRESS 1-0 TO BID, OR TAP TO SELECT)</h2>
+    <div class="teamgrid" id="teamgrid"></div>
+    <div class="hintline">Tapping a team only selects it. Pressing 1-0 records the next bid at once (never a sale).</div>
+    <h2>2 · RECORD THE BID</h2>
+    <button class="nextbid" id="nextBidB" disabled>SELECT A TEAM FIRST</button>
+    <div class="adv" id="advBox"></div>
+    <div class="incs" id="incRow"></div>
+    <div class="incs">
+      <button class="neg" id="decB">− STEP</button><button id="undoBidB" title="Remove only the most recent bid (key Z). Sales are not touched.">UNDO LAST BID</button><button id="clearB">CLEAR BID</button><button id="noBidB">NO BID YET</button><button id="customB">CUSTOM…</button>
+    </div>
+    <div class="timerbox">
+      <div class="t" id="timerD">00:10</div>
+      <button id="tStart">START</button><button id="tPause">PAUSE</button><button id="tReset">RESET</button>
+      <span class="note" id="timerNote">10s ANNOUNCEMENT</span>
+    </div>
+    <div class="bigactions">
+      <button class="sold" id="soldB">SOLD ✓</button>
+      <button class="unsold" id="unsoldB">UNSOLD ✗</button>
+    </div>
+    <div class="subactions">
+      <button id="skipB">SKIP ANIMATION</button><select id="entSel" title="Team walk-in (preview). Plays on the LED, about 10 seconds, silent."></select><button id="entGo">PLAY WALK-IN</button><label style="font-size:12px;color:#c9d3f0;white-space:nowrap" title="When ticked, the walk-in stays on the LED until you press CLOSE WALK-IN"><input type="checkbox" id="entHold"> HOLD UNTIL CLOSED</label><button id="entSkip">CLOSE WALK-IN</button><button id="undoB">UNDO LAST SALE</button><button id="undoUB" title="Bring back the player you just marked UNSOLD. Sales and purses are not touched.">UNDO LAST UNSOLD</button><button id="excludeB">EXCLUDE…</button><button id="reroundB">UNSOLD RE-ROUND</button>
+    </div>
+  </section>
+  <section>
+    <h2 id="purseH">PURSES</h2>
+    <div class="purses" id="purses"></div>
+    <div class="hintline">Tap a team row for penalty / adjustment / release.</div>
+    <h2>ACTIVITY</h2>
+    <div class="log" id="log"></div>
+  </section>
+</main>
+<footer>
+  <span class="stat" style="margin-left:0">BUILD v7.10 · built 31 Oct 4:19PM IST</span>
+  <button id="setupB">⚙ SETUP</button>
+  <button id="preflightB">✔ PRE-CHECK</button>
+  <button id="checklistB">☑ CHECKLIST</button>
+  <button id="statsB">📊 STATS</button>
+  <button id="exportB">⭳ RESULTS CSV</button>
+  <button id="unsoldCsvB" title="Download the list of players currently marked UNSOLD (not players still waiting to be auctioned).">⭳ UNSOLD LIST CSV</button>
+  <button id="resPrintB">🖨 RESULTS SHEET</button>
+  <button id="reportB">🧾 FINAL REPORT</button>
+  <button id="auditB">📜 AUDIT LOG</button>
+  <button id="sheetsB">🖨 TEAM SHEETS (PDF)</button>
+  <button id="backupB">💾 BACKUP STATE</button>
+  <button id="restoreB">⤺ RESTORE</button>
+  <input type="file" id="restoreF" accept="application/json" style="display:none">
+  <span class="stat" id="stat"></span>
+  <button class="danger" id="resetB">RESET AUCTION</button>
+</footer>
+
+<div class="modal" id="setupM">
+  <div class="mcard">
+    <h2>SETUP</h2>
+    <div class="mrow" id="teamNames"></div>
+    <div class="mrow">
+      <div><label>Starting purse (pts)</label><input type="number" id="setPurse"></div>
+      <div><label>Bid timer (seconds)</label><input type="number" id="setTimer"></div>
+      <div><label>Squad min</label><input type="number" id="setSqMin"></div>
+      <div><label>Squad max</label><input type="number" id="setSqMax"></div>
+    </div>
+    <div class="checkrow"><input type="checkbox" id="setResetOnBid"><label for="setResetOnBid" style="text-transform:none;letter-spacing:0;font-size:12.5px;">Restart the timer on every new bid (unsettled rule - your call)</label></div>
+    <h2>CURRENT PLAYER SET</h2>
+    <div class="mbtns"><button id="setSet1">MARK CURRENT AS SET 1</button><button id="setSet2">MARK CURRENT AS SET 2</button></div>
+    <h2>REHEARSAL MODE</h2>
+    <div class="mbtns"><button id="modeT"></button></div>
+    <h2>KEYBOARD SHORTCUTS</h2>
+    <div class="mrow">
+      <div><label>Sold key</label><input type="text" id="keySold" maxlength="1"></div>
+      <div><label>Unsold key</label><input type="text" id="keyUnsold" maxlength="1"></div>
+      <div><label>Timer key</label><input type="text" id="keyTimer" maxlength="1"></div>
+    </div>
+    <div class="hintline">1-0 records the next bid for that team at once (no Enter; sale is never automatic) · tapping a team button only selects it · Enter bids for the selected team · arrows move players. Sale, unsold, release and reset always ask for confirmation.</div>
+    <h2>AUTO SNAPSHOTS (last 5, saved after every sale / unsold / release / undo)</h2>
+    <div id="snapList" style="font-size:12.5px;line-height:1.9;"></div>
+    <div class="mbtns"><button id="snapNowB">📸 SNAPSHOT NOW</button></div>
+    <h2>DATA</h2>
+    <div class="mbtns">
+      <button id="mBackup">💾 DOWNLOAD BACKUP</button>
+      <button class="primary" id="mClose">DONE</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="confirmM"><div class="mcard" style="width:420px;text-align:center;">
+  <h2>CONFIRM SALE</h2>
+  <div id="confirmBody" style="font-size:15px;line-height:1.7;"></div>
+  <div class="mbtns" style="justify-content:center;"><button class="primary" id="confirmYes">CONFIRM (ENTER)</button><button id="confirmNo">CANCEL (ESC)</button></div>
+</div></div>
+<div class="modal" id="backupPromptM"><div class="mcard" style="width:460px;text-align:center;">
+  <h2>BACKUP REMINDER</h2>
+  <div id="backupPromptBody" style="font-size:15px;line-height:1.7;"></div>
+  <div class="mbtns" style="justify-content:center;"><button class="primary" id="bpDownload">💾 DOWNLOAD BACKUP</button><button id="bpLater">LATER</button></div>
+</div></div>
+<div class="modal" id="migM"><div class="mcard" style="width:580px;">
+  <h2 id="migTitle">DATA CLEANUP - ACTION NEEDED</h2>
+  <div id="migBody" style="font-size:13.5px;line-height:1.7;"></div>
+</div></div>
+<div class="modal" id="preflightM"><div class="mcard"><h2>PRE-AUCTION CHECK</h2><div id="preflightBody" style="font-size:12.5px;line-height:1.7;"></div>
+  <div class="mbtns"><button class="primary" id="preflightClose">DONE</button></div></div></div>
+<div class="modal" id="statsM"><div class="mcard" style="width:720px;"><h2>AUCTION STATS (live, current sales only)</h2><div id="statsBody" style="font-size:13px;line-height:1.6;"></div>
+  <div class="mbtns"><button id="stShowStats">SHOW STATS ON LED</button><button id="stShowSpend">SHOW SPENDING ON LED</button>
+  <button id="stSortSpent">SORT: SPENT</button><button id="stSortAvg">SORT: AVG PRICE</button><button id="stSortPurse">SORT: PURSE LEFT</button>
+  <button class="primary" id="statsClose">DONE</button></div></div></div>
+<div class="modal" id="checkM"><div class="mcard" style="width:700px;"><h2>EVENT-START CHECKLIST</h2><div id="checkBody"></div>
+  <div class="mbtns"><button id="ckSound">🔊 PLAY TEST SOUND ON LED</button><button id="ckReset">CLEAR TICKS</button><button class="primary" id="checkClose">DONE</button></div></div></div>
+<div id="sheetsPrint"></div>
+<div class="toast" id="toast"></div>
+
+<script src="players.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="assets/shield-b64.js"></script>
+<script src="assets/team-logos-b64.js"></script>
+<script src="leadership.js"></script>
+<script src="shared.js"></script>
+<script>
+const A=AuctionStore.actions, S=()=>AuctionStore.state;
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString('en-IN');
+let pickedTeam=null; /* selection only - never a recorded bid */
+let toastT=null;
+function toast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(toastT);toastT=setTimeout(()=>t.style.display='none',2600);}
+
+function incs(p){
+  const inc=AuctionStore.incrementFor(p, Math.max(S().bid.amount, AuctionStore.minBidFor(p)));
+  const base=AuctionStore.incrementFor(p,0);
+  if(p&&p.set===1)return [100]; /* Set 1: +100 only */
+  return (S().bid.amount>=500?[100,200,300,500]:[50,100,150,250]);
+}
+function nextAmount(){
+  const p=AuctionStore.currentPlayer();if(!p)return 0;
+  const b=S().bid;
+  if(!b.amount)return AuctionStore.minBidFor(p);
+  if(p.set===1)return Math.floor(b.amount/100)*100+100;
+  return b.amount+AuctionStore.incrementFor(p,b.amount);
+}
+
+const escx=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function render(){
+  const st=S(), v=AuctionStore.view();
+  /* v5 data-cleanup migration surface */
+  const mig=st.migration, notice=st.migrationNotice;
+  if(mig&&mig.pending){
+    $('migTitle').textContent='DATA CLEANUP - ACTION NEEDED';
+    let h='<b>Duplicate registrations were removed from the player list.</b><br>'
+      +'Some saved records conflict, so nothing is decided for you. Your original auction data is safely backed up.<br><br>';
+    mig.conflicts.forEach((c,i)=>{
+      const pl=AuctionStore.player(c.survivor);const nm=pl?pl.name:('#'+c.survivor);
+      if(c.type==='run'){
+        const f=r=>r.status.toUpperCase()+(r.status==='sold'&&r.soldTo!=null?(' &middot; '+st.teams[r.soldTo].name+' &middot; '+fmt(r.soldPrice)+' pts'):'');
+        h+='<div style="border:1px solid #2a3a5f;border-radius:8px;padding:10px 12px;margin:8px 0;"><b>'+escx(nm)+'</b>'+(pl?(' <span style="color:#8d99c0">reg '+pl.reg+'</span>'):'')+' has two records from duplicate form submissions:<br>'
+          +'<button class="primary" style="margin:8px 8px 0 0" data-mig="'+i+':survivor">KEEP LATEST - '+f(c.survivorRec)+'</button>'
+          +'<button data-mig="'+i+':retired">KEEP EARLIER - '+f(c.retiredRec)+'</button></div>';
+      }else{
+        h+='<div style="border:1px solid #2a3a5f;border-radius:8px;padding:10px 12px;margin:8px 0;"><b>'+escx(nm)+'</b> was tagged both Set '+c.retiredSet+' and Set '+c.survivorSet+':'
+          +'<button class="primary" style="margin:8px 8px 0 8px" data-mig="'+i+':survivor">SET '+c.survivorSet+' (latest)</button>'
+          +'<button data-mig="'+i+':retired">SET '+c.retiredSet+' (earlier)</button></div>';
+      }
+    });
+    $('migBody').innerHTML=h;
+    $('migBody').querySelectorAll('[data-mig]').forEach(b=>{b.onclick=()=>{const pr=b.getAttribute('data-mig').split(':');A.resolveMigration({[Number(pr[0])]:pr[1]});render();};});
+    $('migM').classList.add('open');
+  }else if(notice&&notice.length){
+    $('migTitle').textContent='LOAD NOTICE - CHECK ONCE';
+    $('migBody').innerHTML='<b>This version was loaded over a saved auction. Nothing was reset.</b><br>Sales, purses and the player on screen were kept. What changed or needs a look:<br><br>&middot; '
+      +notice.map(escx).join('<br>&middot; ')
+      +'<br><br><button class="primary" id="migNoticeOk">OK</button>';
+    $('migNoticeOk').onclick=()=>{A.clearMigrationNotice();render();};
+    $('migM').classList.add('open');
+  }else{$('migM').classList.remove('open');}
+
+  const p=v.currentPlayer;
+  /* left */
+  const curSt=p?AuctionStore.runOf(p.no).status:null;
+  if(p){
+    $('pcur').innerHTML=(p.photo?`<img src="${p.photo}" alt="">`:`<div class="sil">NO PHOTO</div>`)+
+      `<div><div class="nm">${p.name}</div>
+       <div class="mt"><button class="settag" id="setToggle" title="Tap to switch set" ${p.set==null?'style="background:linear-gradient(180deg,#ffb454,#e08a1e)"':''}>SET ${p.set===1?'1':p.set===2?'2':'?'}</button>#${p.q||p.no} · ${p.role||'-'}</div>
+       <div class="mt">${p.set==null?'<span style="color:var(--warn)">Set not assigned - tap SET ? before bidding</span>':'Min bid '+fmt(v.currentPlayer.minBid)+' pts · increments '+(p.set===1?'+100 only':'×50 to 500, ×100 beyond')}</div>
+       <div class="mt" style="display:flex;gap:6px;flex-wrap:wrap">${p.orig?`<button class="settag" id="viewOrig" style="background:linear-gradient(180deg,#ffe58a,#f2b705);color:#1a1405;font-size:15px;letter-spacing:.06em;padding:8px 18px;border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 2px #f2b705,0 3px 10px rgba(0,0,0,.45)" title="Look at the form upload here only. Nothing changes on the LED.">VIEW UPLOAD</button><button class="settag" id="photoMode" style="background:#fff;color:#0b1d44;font-size:15px;letter-spacing:.06em;padding:8px 18px;border:2px solid #f2b705;border-radius:8px;box-shadow:0 3px 10px rgba(0,0,0,.45)" title="Choose which photo the LED shows for this player">LED PHOTO: ${p.photoMode==='orig'?'UPLOAD':'PORTRAIT'} (tap to switch)</button>`:`<span style="color:var(--ink-dim);font-size:12px">No readable form upload on file</span>`}</div>
+       ${p.dup?'<div class="mt" style="color:var(--warn)">⚠ duplicate registration - verify</div>':''}${p.hold?'<div class="mt" style="color:#ff6b6b">BLOCKED: '+escx(p.hold)+'</div>':''}${p.note?'<div class="mt" style="color:var(--warn)">'+escx(p.note)+'</div>':''}
+       ${curSt&&curSt!=='pending'?`<div class="mt" style="color:${curSt==='sold'?'var(--ok)':'var(--ink-dim)'};font-weight:700">${curSt.toUpperCase()} - press NEXT ▶</div>`:''}</div>`;
+    {const vo=$('viewOrig'),pm=$('photoMode');
+     if(vo)vo.onclick=()=>{const lb=$('origLb');lb.querySelector('img').src=p.orig;lb.querySelector('.cap').textContent='#'+(p.q||p.no)+' '+p.name+' - original form upload (view only, not on the LED)';lb.style.display='flex';};
+     if(pm)pm.onclick=()=>{A.setPhotoMode(p.no,p.photoMode==='orig'?'jersey':'orig');};}
+    $('setToggle').onclick=()=>{A.setPlayerSet(p.no,p.set===1?2:1);}; /* null->1, 1->2, 2->1 */
+    $('bidH').textContent=p.set==null?'BIDDING · ASSIGN SET FIRST':`BIDDING · SET ${p.set===1?'1':'2'} · ${p.set===1?'+100 STEPS':'×50/×100 STEPS'}`;
+  }else{$('pcur').innerHTML='<div class="mt">Queue finished.</div>';}
+  /* queue */
+  const q=($('search').value||'').toLowerCase();
+  const c=AuctionStore.counts();
+  $('queueH').textContent=`QUEUE · ${c.left} LEFT · ${c.sold} SOLD · ${c.unsold} UNSOLD`;
+  $('stat').textContent=`${c.sold} sold · ${c.unsold} unsold · ${c.excluded} excluded · saved ${new Date(st.updatedAt).toLocaleTimeString()}`;
+  const qEl=$('queue');qEl.innerHTML='';
+  for(const no of st.order){
+    const pl=AuctionStore.player(no);if(!pl)continue;
+    if(q&&!(pl.name.toLowerCase().includes(q)||String(pl.alias||'').toLowerCase().includes(q)||String(pl.reg).includes(q)||String(pl.q)===q))continue;
+    const r=AuctionStore.runOf(no);
+    const div=document.createElement('div');
+    div.className='qrow'+(no===(p&&p.no)?' cur':'')+' '+(r.status==='sold'?'sold':r.status==='unsold'?'unsold':r.status==='excluded'?'excluded':'')+(pl.dup?' dup':'');
+    div.innerHTML=`<span class="no">${pl.q||no}</span><span class="qn">${pl.name}</span><span class="st">${no===(p&&p.no)&&r.status==='pending'?'LIVE':r.status==='sold'?('SOLD '+fmt(r.soldPrice)):r.status.toUpperCase()}</span>`;
+    div.onclick=()=>{if(r.status==='pending')A.selectPlayer(no);};
+    qEl.appendChild(div);
+  }
+  /* centre */
+  $('bidAmt').textContent=st.bid.amount?fmt(st.bid.amount):'—';
+  const leadT=st.bid.amount?st.teams[st.bid.teamIdx]:null;const leadLg=leadT?A.teamLogoSrc(leadT.name,st.bid.teamIdx):null;
+  $('bidLead').innerHTML=leadT?('leading: '+(leadLg?`<img src="${leadLg}" style="height:18px;width:18px;object-fit:cover;border-radius:50%;vertical-align:-4px" onerror="this.remove()"> `:'')+'<b>'+leadT.name+'</b>'):'no bid yet';
+  const tg=$('teamgrid');tg.innerHTML='';
+  st.teams.forEach((t,i)=>{
+    const b=document.createElement('button');
+    b.className=(pickedTeam===i?'picked ':'')+(st.bid.teamIdx===i?'leader':'');
+    const lg=A.teamLogoSrc(t.name,i);
+    b.innerHTML=(lg?`<img class="tlogo" src="${lg}" onerror="this.remove()">`:'')+`${t.name}<span class="key">${(i+1)%10}</span>`;
+    b.onclick=()=>{pickedTeam=(pickedTeam===i?null:i);render();};
+    tg.appendChild(b);
+  });
+  const curStatus=p?AuctionStore.runOf(p.no).status:null;
+  const nb=$('nextBidB');
+  if(p&&curStatus!=='pending'){
+    nb.disabled=true;nb.textContent=curStatus.toUpperCase()+' · PRESS NEXT ▶';
+  }else if(p&&pickedTeam!=null){
+    nb.disabled=false;
+    nb.textContent=`BID ${fmt(nextAmount())} → ${st.teams[pickedTeam].name}`;
+  }else{nb.disabled=true;nb.textContent=p?'SELECT A TEAM FIRST':'QUEUE FINISHED';}
+  const adv=$('advBox');
+  if(p&&curStatus==='pending'&&pickedTeam!=null&&p.set!=null){
+    const a=AuctionStore.squadAdvisory(pickedTeam,nextAmount());
+    adv.className='adv show '+(a.level==='red'?'red':a.level==='amber'?'amber':'ok');
+    adv.innerHTML='<b>SQUAD CHECK (advice only, nothing is blocked)</b> · '+escx(st.teams[pickedTeam].name)+' would have '+a.squadAfter+'/'+st.settings.squadMax+' players and '+fmt(a.purseAfter)+' pts after this bid.<br>'+(a.level==='full'?'This would go over the squad maximum.':escx(a.msg))+(a.need>0?'<br><span style="opacity:.75">Pool for the '+a.need+' more players: '+a.poolCount+' left (incl. '+a.unsoldInPool+' unsold). Cheapest total counts untagged players at 50.</span>':'');
+  }else{adv.className='adv';adv.innerHTML='';}
+  const ir=$('incRow');ir.innerHTML='';
+  if(p)for(const v2 of incs(p)){
+    const b=document.createElement('button');b.textContent='+'+v2;
+    b.onclick=()=>{if(pickedTeam==null){toast('Select a team first (tap, or press 1-0 to bid)');return;}
+      const r=A.placeBid(pickedTeam,(st.bid.amount||0)+v2===0?v2:(st.bid.amount?st.bid.amount+v2:v2<AuctionStore.minBidFor(p)?AuctionStore.minBidFor(p):v2));
+      if(!r.ok)toast(r.err);render();};
+    ir.appendChild(b);
+  }
+  /* timer */
+  const tv=v.timer;
+  $('timerD').textContent='00:'+String(tv.secs).padStart(2,'0');
+  $('timerD').classList.toggle('low',tv.secs<=3);
+  $('timerNote').textContent=tv.total+'s ANNOUNCEMENT'+(tv.running?' · RUNNING':'');
+  $('soldB').disabled=!st.bid.amount;
+  /* right */
+  const ph=$('purses');ph.innerHTML='<div class="prow head"><span>TEAM</span><span>PURSE</span><span>SQD</span></div>';
+  v.teams.forEach((t,i)=>{
+    const d=document.createElement('div');
+    d.className='prow'+(st.bid.teamIdx===i?' leaderteam':'');
+    d.innerHTML=`<span>${t.name}</span><span class="p">${fmt(t.purse)}</span><span class="sq">${t.squad}/${t.squadMax}</span>`;
+    d.onclick=()=>teamMenu(i);
+    ph.appendChild(d);
+  });
+  $('purseH').textContent='PURSES · '+fmt(st.settings.purseStart)+' START';
+  const lg=$('log');lg.innerHTML='';
+  for(const e of st.log.slice(0,60)){
+    const d=document.createElement('div');d.className='logrow '+e.kind;
+    d.textContent=e.text;lg.appendChild(d);
+  }
+  /* layout toggle */
+  $('layA').classList.toggle('on',st.layout==='A');
+  $('layB').classList.toggle('on',st.layout==='B');
+  $('layW').classList.toggle('on',st.layout==='W');
+  $('layX').classList.toggle('on',st.layout==='X');
+  $('layN').classList.toggle('on',st.layout==='N');
+  $('layT').classList.toggle('on',st.layout==='T'&&st.statsView!=='spend');
+  $('layP').classList.toggle('on',st.layout==='T'&&st.statsView==='spend');
+  $('sqCtl').classList.toggle('show',st.layout==='S');
+  $('sqSortB').textContent='SORT: '+(st.squadSort==='price'?'PRICE':'#');
+  if($('statsM').classList.contains('open'))paintStats();
+  if($('checkM').classList.contains('open'))paintChecklist();
+  /* LED heartbeat */
+  const beat=parseInt(localStorage.getItem(BEAT_KEY)||'0');
+  const live=beat&&Date.now()-beat<5000;
+  $('ledDot').style.background=live?'var(--ok)':'var(--bad)';
+  $('ledDot').style.boxShadow='0 0 8px '+(live?'var(--ok)':'var(--bad)');
+  $('ledTxt').textContent=live?'LED LIVE':'LED OFFLINE';
+}
+
+function teamMenu(i){
+  const t=S().teams[i];
+  let hiTxt='';
+  const buys=Object.keys(S().run).map(Number).filter(no=>S().run[no].status==='sold'&&S().run[no].soldTo===i);
+  let hi=null;for(const no of buys){const r=S().run[no];if(!hi||r.soldPrice>hi.price)hi={no,price:r.soldPrice};}
+  if(hi){const pl=AuctionStore.player(hi.no);hiTxt='\nHighest-bid player: #'+((pl&&pl.q)||hi.no)+' '+(pl?pl.name:'?')+' ('+hi.price.toLocaleString('en-IN')+' pts)';}
+  const choice=prompt(t.name+' — type:\n  led = show squad on LED\n  -100 or -500 = penalty\n  +N = add points\n  release <player no> = remove a bought player -> unsold pool (30% of bid refunded)'+hiTxt+'\n  rename <new name> = rename team','');
+  if(!choice)return;
+  const m=choice.trim();
+  if(m.toLowerCase()==='led'){A.showSquadOnLED(i);render();return;}
+  if(/^-\d+$/.test(m))A.adjustPurse(i,parseInt(m),'penalty');
+  else if(/^\+\d+$/.test(m))A.adjustPurse(i,parseInt(m),'adjustment');
+  else if(m.toLowerCase().startsWith('release ')){const no=parseInt(m.slice(8));if(no)A.releasePlayer(no,i);}
+  else if(m.toLowerCase().startsWith('rename '))A.setTeamName(i,m.slice(7));
+  render();
+}
+
+/* ---- team sheets: 10 separate PDFs ---- */
+function drawTeamSheet(doc,t,buys,purse,spent,img,tlogo,lead,slugKey){
+  const W=297,H=210,M=16;let y=12;
+  if(img){try{doc.addImage(img,'JPEG',M,y,15,15);}catch(e){}}
+  doc.setFont('helvetica','bold');doc.setFontSize(19);doc.setTextColor(17,17,17);
+  doc.text('BIJAY CUP 2026',M+22,y+6);
+  doc.setFontSize(8);doc.setTextColor(138,109,31);
+  doc.text('O U T R    PLAYER AUCTION    FINAL SQUAD',M+22,y+11);
+  if(tlogo){try{doc.addImage(tlogo,'JPEG',W-M-15,y,15,15);}catch(e){}}
+  if(lead&&lead.length){ /* owner / captain / vice-captain, only if real details exist */
+    const cw=40,x0=W-M-15-6-cw*lead.length;
+    lead.forEach((m,li)=>{const cx=x0+li*cw;let tx=cx;
+      const b64=(typeof LEADERSHIP_B64!=='undefined')?LEADERSHIP_B64[slugKey+'-'+m.key]:null;
+      if(b64){try{doc.addImage(b64,'JPEG',cx,y,11,15);tx=cx+13;}catch(e){}}
+      doc.setFont('helvetica','bold');doc.setFontSize(6);doc.setTextColor(138,109,31);doc.text(m.role,tx,y+3);
+      doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(17,17,17);
+      const lines=doc.splitTextToSize(String(m.name),cw-(tx-cx)-2).slice(0,2);doc.text(lines,tx,y+7.5);});
+    doc.setFont('helvetica','bold');
+  }
+  doc.setDrawColor(184,134,11);doc.setLineWidth(1);doc.line(M,y+15,W-M,y+15);
+  y+=24;
+  doc.setFontSize(22);doc.setTextColor(17,17,17);
+  doc.text(String(t.name).toUpperCase(),M,y);
+  y+=6.5;
+  doc.setFontSize(10);doc.setTextColor(70,70,70);
+  doc.text('Squad '+buys.length+'/20    Spent '+fmt(spent)+' pts    Purse left '+fmt(purse)+' pts',M,y);
+  y+=4;
+  const cols=[['#',12,0],['PLAYER',64,0],['ROLE',44,0],['BRANCH',80,0],['PRICE',28,1]];
+  doc.setFillColor(16,32,63);doc.rect(M,y,W-2*M,7.5,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+  let x=M;
+  cols.forEach(([h,w,r])=>{if(r)doc.text(h,x+w-2,y+5.2,{align:'right'});else doc.text(h,x+2,y+5.2);x+=w;});
+  y+=7.5;
+  doc.setFont('helvetica','normal');
+  if(!buys.length){
+    doc.setTextColor(120,120,120);doc.setFontSize(10);doc.text('No players bought.',M+2,y+7);y+=14;
+  }
+  buys.forEach((b,i)=>{
+    if(y>H-18){doc.addPage();y=14;
+      doc.setFillColor(16,32,63);doc.rect(M,y,W-2*M,7.5,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');
+      x=M;cols.forEach(([h,w,r])=>{if(r)doc.text(h,x+w-2,y+5.2,{align:'right'});else doc.text(h,x+2,y+5.2);x+=w;});
+      y+=7.5;doc.setFont('helvetica','normal');}
+    if(i%2===0){doc.setFillColor(246,247,249);doc.rect(M,y,W-2*M,6.6,'F');}
+    doc.setTextColor(17,17,17);doc.setFontSize(9);
+    x=M;
+    const row=[String(b.q||b.no),String(b.name),String(b.role),String(b.branch),fmt(b.price)+' pts'];
+    cols.forEach(([_,w,r],ci)=>{if(r)doc.text(row[ci],x+w-2,y+4.5,{align:'right'});else doc.text(row[ci],x+2,y+4.5);x+=w;});
+    doc.setDrawColor(221,221,221);doc.setLineWidth(.2);doc.line(M,y+6.6,W-M,y+6.6);
+    y+=6.6;
+  });
+  doc.setFontSize(8);doc.setTextColor(90,90,90);
+  doc.text('Bijay Cup 2026 · OUTR',M,H-8);
+  doc.text(t.name+' · '+buys.length+' players',W-M,H-8,{align:'right'});
+}
+$('sheetsB').onclick=async()=>{
+  const st=S();const c=AuctionStore.counts();
+  if(!confirm('Download 10 SEPARATE squad PDFs, one per team ('+c.sold+' players sold so far)?\nYour browser may ask to allow multiple downloads - choose Allow.'))return;
+  const {jsPDF}=window.jspdf;
+  const img=(typeof SHIELD_JPEG_B64!=='undefined')?SHIELD_JPEG_B64:null;
+  const tlogoB64=i2=>{const sl=A.teamSlug(st.teams[i2].name)||A.teamSlugByIdx(i2);return (typeof TEAM_LOGO_B64!=='undefined'&&sl)?TEAM_LOGO_B64[sl]:null;};
+  for(let i=0;i<st.teams.length;i++){
+    const t=st.teams[i];
+    const purse=AuctionStore.teamPurse(i);
+    const buys=Object.keys(st.run).map(Number).filter(no=>st.run[no].status==='sold'&&st.run[no].soldTo===i)
+      .sort((a,b)=>a-b).map(no=>{const p=AuctionStore.player(no);return{no,name:p?p.name:'#',role:p?p.role:'-',branch:p?p.branch:'-',price:st.run[no].soldPrice};});
+    const spent=buys.reduce((a,b)=>a+b.price,0);
+    const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const slugKey=A.teamSlug(t.name)||A.teamSlugByIdx(i)||'';
+    const leadRaw=AuctionStore.leadFor(i);
+    const leadKeys={'OWNER':'owner','CAPTAIN':'captain','VICE-CAPTAIN':'vice'};
+    const lead=leadRaw?leadRaw.map(m=>({...m,key:leadKeys[m.role]})):null;
+    drawTeamSheet(doc,t,buys,purse,spent,img,tlogoB64(i),lead,slugKey);
+    doc.save('Bijay-Cup-2026-'+t.name.replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'')+'-Squad.pdf');
+    await new Promise(r=>setTimeout(r,450));
+  }
+  toast('10 team PDFs downloaded');
+};
+
+/* ---- wire controls ---- *//* ---- wire controls ---- */
+$('layA').onclick=()=>A.setLayout('A');
+$('layB').onclick=()=>A.setLayout('B');
+$('layW').onclick=()=>A.setLayout('W');
+$('layX').onclick=()=>A.setLayout('X');
+$('layN').onclick=()=>A.setLayout('N');
+$('layT').onclick=()=>A.showStats('stats');
+$('layP').onclick=()=>A.showStats('spend');
+$('sqSortB').onclick=()=>A.setSquadSort(S().squadSort==='price'?'number':'price');
+$('sqPrevB').onclick=()=>A.squadPageStep(-1);
+$('sqNextB').onclick=()=>A.squadPageStep(1);
+$('closingB').onclick=()=>{A.closingNext();};
+const MODE=(localStorage.getItem('bijaycup2026_mode')||'live');
+const BEAT_KEY='bijaycup2026_beat_'+(MODE==='rehearsal'?'rehearsal':'live');
+$('nextB').onclick=()=>{A.nextPlayer();pickedTeam=null;};
+$('prevB').onclick=()=>{A.prevPlayer();pickedTeam=null;};
+$('search').addEventListener('input',render);
+$('nextBidB').onclick=()=>{if(pickedTeam==null)return;const r=A.placeBid(pickedTeam,nextAmount());if(!r.ok)toast(r.err);render();};
+$('undoBidB').onclick=()=>{const r=A.undoLastBid();if(!r.ok)toast(r.err);render();};
+$('clearB').onclick=()=>{A.clearBid();render();};
+$('noBidB').onclick=()=>{A.clearBid();render();};
+$('decB').onclick=()=>{
+  const p=AuctionStore.currentPlayer();if(!p||!S().bid.amount)return;
+  const inc=AuctionStore.incrementFor(p,S().bid.amount-1);
+  const amt=S().bid.amount-inc;
+  if(amt<AuctionStore.minBidFor(p)){A.clearBid();}else{const t=S().bid.teamIdx;A.clearBid();const r=A.placeBid(t,amt,{correction:true});if(!r.ok)toast(r.err);}
+  render();};
+$('customB').onclick=()=>{
+  if(pickedTeam==null){toast('Select a team first');return;}
+  const v=prompt('Bid amount for '+S().teams[pickedTeam].name+' (points):');if(!v)return;
+  const r=A.placeBid(pickedTeam,parseInt(v));if(!r.ok)toast(r.err);render();};
+$('tStart').onclick=()=>A.timerStart();
+$('tPause').onclick=()=>A.timerPause();
+$('tReset').onclick=()=>A.timerReset();
+$('soldB').onclick=()=>{
+  const st=S();if(!st.bid.amount){toast('Record a bid first (select team + amount)');return;}
+  const p=AuctionStore.currentPlayer();
+  $('confirmBody').innerHTML='Sell <b style="font-size:18px">'+p.name+'</b><br>to <b style="color:var(--gold-2);font-size:18px">'+st.teams[st.bid.teamIdx].name+'</b><br>for <b style="color:var(--gold-2);font-size:22px">'+fmt(st.bid.amount)+' pts</b>?';
+  $('confirmM').classList.add('open');};
+$('confirmNo').onclick=()=>$('confirmM').classList.remove('open');
+let lastBackupPrompt=0;
+$('confirmYes').onclick=()=>{$('confirmM').classList.remove('open');const r=A.markSold();if(!r.ok)toast('Cannot sell now');pickedTeam=null;render();
+  if(r.ok){const c=AuctionStore.counts();if(c.sold>0&&c.sold%10===0&&c.sold>lastBackupPrompt){lastBackupPrompt=c.sold;
+    $('backupPromptBody').innerHTML='<b style="font-size:17px">'+c.sold+' players sold.</b><br>Save a backup copy now so a crash costs you nothing.';$('backupPromptM').classList.add('open');}}};
+$('bpDownload').onclick=()=>{$('backupPromptM').classList.remove('open');downloadBackup();};
+$('bpLater').onclick=()=>$('backupPromptM').classList.remove('open');
+$('unsoldB').onclick=()=>{
+  const p=AuctionStore.currentPlayer();if(!p)return;
+  const hasBid=!!S().bid.amount;
+  if(!confirm('Mark '+(p.name||'this player')+' UNSOLD?'+(hasBid?' A bid is currently recorded - it will be discarded.':'')+' He goes to the unsold pool (re-round possible later).'))return;
+  A.markUnsold();pickedTeam=null;render();};
+$('skipB').onclick=()=>A.skipOverlay();
+(function(){const sel=$('entSel');sel.innerHTML=S().teams.map((t,i)=>'<option value="'+i+'">'+(i+1)+'. '+String(t.name).replace(/</g,'&lt;')+'</option>').join('');$('entGo').onclick=()=>{A.entranceStart(parseInt(sel.value),$('entHold').checked);};$('entSkip').onclick=()=>A.entranceSkip();})();
+$('undoB').onclick=()=>{if(confirm('Undo the most recent sale? The player goes back to the queue.')){A.undoLastSale();pickedTeam=null;render();}};
+$('undoUB').onclick=()=>{
+  const c=AuctionStore.counts();if(!c.unsold){toast('No unsold player to bring back');return;}
+  if(confirm('Bring the most recently UNSOLD player back onto the block? Sales and purses are not touched.')){const r=A.undoLastUnsold();toast(r.ok?(r.name+' is back, no bid recorded'):'Nothing to undo');pickedTeam=null;render();}};
+$('reroundB').onclick=()=>{
+  if(confirm('Bring ALL unsold players back into the queue for the re-auction round?')){const r=A.reauctionUnsold();if(!r.ok)toast('No unsold players');pickedTeam=null;render();}};
+$('excludeB').onclick=()=>{
+  const p=AuctionStore.currentPlayer();if(!p)return;
+  if(confirm('Exclude '+p.name+' from the queue? (duplicate / not playing). Reversible from search.')){A.excludePlayer(p.no);pickedTeam=null;render();}};
+$('backupB').onclick=downloadBackup;
+$('mBackup').onclick=downloadBackup;
+function paintSnaps(){
+  const items=AuctionStore.listSnapshots();
+  $('snapList').innerHTML=items.length?items.map(it=>
+    '&middot; '+new Date(it.at).toLocaleString()+' - '+String(it.label).replace(/</g,'&lt;')+
+    ' <button data-slot="'+it.slot+'" style="padding:2px 8px;font-size:11px;">RESTORE</button>').join('<br>')
+    :'No snapshots yet - the first confirmed transaction saves one.';
+  $('snapList').querySelectorAll('button').forEach(b=>{b.onclick=()=>{
+    if(!confirm('Restore this snapshot? Current progress since it was taken is replaced. Download a backup first if unsure.'))return;
+    const r=AuctionStore.restoreSnapshot(Number(b.dataset.slot));
+    toast(r.ok?'Snapshot restored':'Snapshot missing');render();paintSnaps();};});
+}
+$('snapNowB').onclick=()=>{AuctionStore.snapshotNow('manual snapshot');paintSnaps();toast('Snapshot saved');};
+$('auditB').onclick=()=>{
+  const blob=new Blob([A.auditCSV()],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bijay-cup-2026-audit-log-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.csv';a.click();};
+$('reportB').onclick=()=>{
+  const blob=new Blob([A.finalReportCSV()],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bijay-cup-2026-final-report-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.csv';a.click();};
+function downloadBackup(){
+  try{localStorage.setItem('bijaycup2026_lastbackup_'+MODE,String(Date.now()));}catch(e){}
+  const blob=new Blob([A.exportJSON()],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bijay-cup-2026-auction-backup-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.json';a.click();}
+$('restoreB').onclick=()=>$('restoreF').click();
+$('restoreF').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();rd.onload=()=>{try{A.importJSON(rd.result);toast('Backup restored');}catch(err){toast('Restore failed: bad file');}render();};
+  rd.readAsText(f);});
+$('exportB').onclick=()=>{
+  const blob=new Blob([A.resultsCSV()],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bijay-cup-2026-results-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.csv';a.click();};
+$('unsoldCsvB').onclick=()=>{
+  if(!AuctionStore.counts().unsold){toast('No unsold players yet');return;}
+  const blob=new Blob(['\ufeff'+A.unsoldCSV()],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='bijay-cup-2026-unsold-players-'+new Date().toISOString().slice(0,19).replace(/[:T]/g,'-')+'.csv';a.click();};
+$('preflightB').onclick=()=>{
+  const noPhoto=PLAYERS.filter(p=>!p.photo);
+  const dups=PLAYERS.filter(p=>p.dup);
+  const noSet=PLAYERS.filter(p=>p.set==null);
+  const beat=parseInt(localStorage.getItem(BEAT_KEY)||'0');
+  const ledLive=beat&&Date.now()-beat<5000;
+  let bcOk=false;try{bcOk=!!new BroadcastChannel('bijaycup2026_health')}catch(e){}
+  let lsOk=false;try{localStorage.setItem('bijaycup2026_h','1');localStorage.removeItem('bijaycup2026_h');lsOk=true;}catch(e){}
+  let fontOk=true;try{fontOk=document.fonts&&document.fonts.check('12px Anton')&&document.fonts.check('12px BC');}catch(e){}
+  const snaps=AuctionStore.listSnapshots();
+  $('preflightBody').innerHTML=
+    '<b>DISPLAY / SYSTEM HEALTH</b><br>'+
+    'LED display: '+(ledLive?'<b style="color:var(--ok)">LIVE</b> (heartbeat '+Math.round((Date.now()-beat)/1000)+'s ago)':'<b style="color:var(--bad)">OFFLINE</b> - open display.html on the LED screen')+
+    '<br>Screen sync channel: '+(bcOk?'<b style="color:var(--ok)">OK</b>':'<b style="color:var(--bad)">NOT SUPPORTED</b>')+
+    ' &nbsp;·&nbsp; Local save: '+(lsOk?'<b style="color:var(--ok)">OK</b>':'<b style="color:var(--bad)">BLOCKED</b>')+
+    ' &nbsp;·&nbsp; Fonts: '+(fontOk?'<b style="color:var(--ok)">OK</b>':'<b style="color:var(--warn)">CHECK</b>')+
+    ' &nbsp;·&nbsp; Auto snapshots: <b>'+snaps.length+'</b> saved'+(snaps.length?' (latest '+new Date(snaps[0].at).toLocaleTimeString()+')':'')+
+    '<br><br><b style="color:var(--warn)">'+noPhoto.length+' players without a photo:</b><br>'+(noPhoto.map(p=>'#'+(p.q||p.no)+' '+p.name).join(' · ')||'none')+
+    '<br><br><b style="color:var(--warn)">'+dups.length+' rows share a registration number (duplicates):</b><br>Verify before selling. Excluded players stay out of the queue.'+
+    '<br><br><b style="color:var(--warn)">Set 1/2 is PROVISIONAL for all '+PLAYERS.length+' players</b> until the owner\'s final list (29 Oct). '+noSet.length+' players are not tagged yet. Bidding is blocked for an untagged player until Set 1 or Set 2 is chosen (tap the SET tag).'+
+    '<br><br>Mode: <b>'+MODE.toUpperCase()+'</b>';
+  $('preflightM').classList.add('open');};
+
+function paintStats(){
+  const d=AuctionStore.statsData();const nm=i=>escx(S().teams[i].name);
+  const hi=d.highest,lo=d.lowest;
+  const ppl=x=>x?escx(x.name)+' ('+fmt(x.price)+' pts, '+nm(x.teamIdx)+')':'-';
+  const order=AuctionStore.sortedTeams(S().spendSort);
+  const key=S().spendSort;
+  $('statsBody').innerHTML=
+   '<div class="stgrid"><div><b>'+d.sold+'</b><span>SOLD</span></div><div><b>'+d.unsold+'</b><span>UNSOLD</span></div><div><b>'+d.excluded+'</b><span>RELEASED/EXCLUDED</span></div><div><b>'+d.left+'</b><span>STILL TO COME</span></div></div>'+
+   '<div class="stgrid" style="margin-top:8px"><div><b>'+fmt(d.totalSpent)+'</b><span>TOTAL POINTS SPENT</span></div><div><b>'+(d.sold?fmt(d.avg):'-')+'</b><span>AVERAGE SALE</span></div><div><b>'+(hi?fmt(hi.price):'-')+'</b><span>HIGHEST SALE</span></div><div><b>'+(lo?fmt(lo.price):'-')+'</b><span>LOWEST SALE</span></div></div>'+
+   '<p style="margin-top:8px"><b>Most expensive / record:</b> '+ppl(hi)+(d.tiesHi>1?' <i>(tied with '+(d.tiesHi-1)+' other)</i>':'')+'<br><b>Lowest sale:</b> '+ppl(lo)+(d.tiesLo>1?' <i>('+d.tiesLo+' at this price)</i>':'')+'</p>'+
+   '<h2>SALES BY ROLE</h2><table class="sttab"><tr><th>ROLE</th><th>SOLD</th><th>AVG</th><th>TOTAL</th></tr>'+(d.byRole.map(r=>'<tr><td>'+escx(AuctionStore.roleLabel(r.role))+'</td><td>'+r.sold+'</td><td>'+fmt(r.avg)+'</td><td>'+fmt(r.sum)+'</td></tr>').join('')||'<tr><td colspan="4">No sales yet</td></tr>')+'</table>'+
+   '<h2>SALES BY SET</h2>'+(d.tagged>0||d.untaggedSold?'<table class="sttab"><tr><th>SET</th><th>SOLD</th><th>AVG</th><th>TOTAL</th></tr>'+d.sets.map(r=>'<tr><td>SET '+r.set+'</td><td>'+r.sold+'</td><td>'+(r.sold?fmt(r.avg):'-')+'</td><td>'+fmt(r.sum)+'</td></tr>').join('')+'</table>'+(d.untaggedSold?'<div class="hintline">'+d.untaggedSold+' sold players have no Set tag.</div>':''):'<div class="hintline">Set tags are not assigned yet, so there is nothing to split by Set.</div>')+
+   '<h2>TEAM SPENDING (sorted by '+(key==='avg'?'average price':key==='purse'?'purse left':'spent')+', high to low)</h2>'+
+   '<table class="sttab"><tr><th>TEAM</th><th>PLAYERS</th><th>SPENT</th><th>AVG PRICE</th><th>PURSE LEFT</th></tr>'+order.map(r=>'<tr><td>'+escx(r.name)+'</td><td>'+r.squad+'</td><td>'+fmt(r.spent)+'</td><td>'+(r.avg==null?'-':fmt(r.avg))+'</td><td>'+fmt(r.purse)+'</td></tr>').join('')+'</table>'+
+   '<div class="hintline">Figures cover players currently sold. Released and undone sales are not counted. Purse left also reflects penalties, additions and release costs. A higher spend does not mean a better squad.</div>';
+}
+$('statsB').onclick=()=>{paintStats();$('statsM').classList.add('open');};
+$('statsClose').onclick=()=>$('statsM').classList.remove('open');
+$('stShowStats').onclick=()=>{A.showStats('stats');toast('Stats are on the LED');};
+$('stShowSpend').onclick=()=>{A.showStats('spend');toast('Spending overview is on the LED');};
+$('stSortSpent').onclick=()=>A.setSpendSort('spent');
+$('stSortAvg').onclick=()=>A.setSpendSort('avg');
+$('stSortPurse').onclick=()=>A.setSpendSort('purse');
+
+const CK_KEY='bijaycup2026_check_'+MODE;
+function ckLoad(){try{return JSON.parse(localStorage.getItem(CK_KEY)||'{}');}catch(e){return{};}}
+function ckSave(o){try{localStorage.setItem(CK_KEY,JSON.stringify(o));}catch(e){}}
+const CK_MANUAL=[
+ ['ext','Projector connected as an extended display','Windows: Win+P, then choose Extend.'],
+ ['full','LED / projector window moved to the projector and set to fullscreen','Open the LED screen, drag it to the projector, press F11. Keep this operator window on the laptop.'],
+ ['snd','Sound tested by ear through the projector or speakers','Click the LED window once, make sure it says SOUND ON, then press PLAY TEST SOUND below.'],
+ ['look','Every screen looks right on the projector','Press A, B, COMING UP, STATS, SPENDING, WELCOME and BREAK once and look at each.'],
+ ['reh','Rehearsal done on this laptop and this projector','Use REHEARSAL MODE in SETUP, then switch back to LIVE.']
+];
+function paintChecklist(){
+  const ck=ckLoad();const rows=[];
+  const beat=parseInt(localStorage.getItem(BEAT_KEY)||'0');const live=beat&&Date.now()-beat<5000;
+  const noSet=PLAYERS.filter(p=>p.set==null).length;
+  const noPhoto=PLAYERS.filter(p=>!p.photo).length;
+  const lb=parseInt(localStorage.getItem('bijaycup2026_lastbackup_'+MODE)||'0');
+  let lsOk=false;try{localStorage.setItem('bijaycup2026_h','1');localStorage.removeItem('bijaycup2026_h');lsOk=true;}catch(e){}
+  let fontOk=true;try{fontOk=document.fonts&&document.fonts.check('12px Anton')&&document.fonts.check('12px BC');}catch(e){}
+  const auto=[
+    [live?'ok':'no','LED window open and responding (same Chrome profile)',live?'Live.':'Open display.html on the LED screen in this same Chrome profile.'],
+    [MODE==='live'?'ok':'wn','Mode is LIVE',MODE==='live'?'Real auction data is active.':'REHEARSAL MODE is on. Switch to LIVE in SETUP before the real auction.'],
+    [lsOk?'ok':'no','Local save works',lsOk?'Autosave is available.':'Browser storage is blocked. Do not start.'],
+    [fontOk?'ok':'wn','Fonts loaded',fontOk?'':'Reload the LED screen.'],
+    [noSet===0?'ok':'wn','Set 1 / Set 2 tags',noSet===0?'All players are tagged.':noSet+' players are not tagged. Bidding is blocked for an untagged player. Your final list arrives on 29 Oct.'],
+    [noPhoto===0?'ok':'wn','Player photos',noPhoto===0?'All players have a photo.':noPhoto+' players show NO PHOTO.'],
+    [lb?'ok':'wn','Backup file downloaded from this laptop',lb?'Last backup: '+new Date(lb).toLocaleString():'Press BACKUP STATE once before starting and keep the file.']
+  ];
+  let done=0,total=auto.length+CK_MANUAL.length;
+  for(const [st,t,h] of auto){if(st==='ok')done++;rows.push('<div class="ckrow"><div class="st '+st+'">'+(st==='ok'?'&#10004;':st==='no'?'&#10008;':'!')+'</div><div>'+t+'<small>'+h+'</small></div></div>');}
+  for(const [k,t,h] of CK_MANUAL){if(ck[k])done++;rows.push('<div class="ckrow"><div class="st"><input type="checkbox" data-k="'+k+'" '+(ck[k]?'checked':'')+'></div><div>'+t+'<small>'+h+'</small></div></div>');}
+  $('checkBody').innerHTML='<div class="hintline" style="margin-bottom:6px">'+done+' of '+total+' ready. The first block checks itself. Tick the rest yourself.</div>'+rows.join('');
+  $('checkBody').querySelectorAll('input[type=checkbox]').forEach(cb=>{cb.onchange=()=>{const o=ckLoad();o[cb.dataset.k]=cb.checked;ckSave(o);paintChecklist();};});
+}
+$('checklistB').onclick=()=>{paintChecklist();$('checkM').classList.add('open');};
+$('checkClose').onclick=()=>$('checkM').classList.remove('open');
+$('ckReset').onclick=()=>{ckSave({});paintChecklist();};
+$('ckSound').onclick=()=>{A.soundTest();toast('Test sound sent to the LED window');};
+setInterval(()=>{if($('checkM').classList.contains('open'))paintChecklist();},2000);
+
+$('preflightClose').onclick=()=>$('preflightM').classList.remove('open');
+$('resetB').onclick=()=>{if(confirm('RESET the whole auction? All sales and purses return to start. Download a backup first if needed.'))if(confirm('Really reset? This cannot be undone.')){A.resetAuction();pickedTeam=null;render();}};
+/* setup modal */
+$('setupB').onclick=()=>{
+  const st=S();
+  $('teamNames').innerHTML=st.teams.map((t,i)=>`<div class="mfull"><label>Team ${i+1}</label><input type="text" data-ti="${i}" value="${t.name}"></div>`).join('');
+  $('setPurse').value=st.settings.purseStart;$('setTimer').value=st.settings.timerSecs;
+  $('setSqMin').value=st.settings.squadMin;$('setSqMax').value=st.settings.squadMax;
+  $('setResetOnBid').checked=!!st.settings.resetOnBid;
+  const k=st.settings.keys||{sold:'s',unsold:'u',timer:'t'};
+  $('keySold').value=k.sold;$('keyUnsold').value=k.unsold;$('keyTimer').value=k.timer;
+  paintSnaps();
+  $('setupM').classList.add('open');};
+$('mClose').onclick=()=>{
+  document.querySelectorAll('#teamNames input').forEach(inp=>A.setTeamName(+inp.dataset.ti,inp.value));
+  const nk={sold:($('keySold').value||'s').toLowerCase(),unsold:($('keyUnsold').value||'u').toLowerCase(),timer:($('keyTimer').value||'t').toLowerCase()};
+  A.updateSettings({purseStart:+$('setPurse').value||8000,timerSecs:+$('setTimer').value||10,squadMin:+$('setSqMin').value||15,squadMax:+$('setSqMax').value||20,resetOnBid:$('setResetOnBid').checked,keys:nk});
+  $('setupM').classList.remove('open');render();};
+$('setSet1').onclick=()=>{const p=AuctionStore.currentPlayer();if(p)A.setPlayerSet(p.no,1);};
+$('setSet2').onclick=()=>{const p=AuctionStore.currentPlayer();if(p)A.setPlayerSet(p.no,2);};
+function paintMode(){$('modeT').textContent=MODE==='rehearsal'?'MODE: REHEARSAL (practice data) - TAP TO GO LIVE':'MODE: LIVE - TAP FOR REHEARSAL';}
+paintMode();
+$('modeT').onclick=()=>{
+  const next=MODE==='rehearsal'?'live':'rehearsal';
+  if(!confirm('Switch to '+next.toUpperCase()+' mode? Both screens reload with '+(next==='rehearsal'?'a separate practice auction':'the real auction data')+'.'))return;
+  localStorage.setItem('bijaycup2026_mode',next);
+  try{new BroadcastChannel('bijaycup2026_mode').postMessage('reload');}catch(e){}
+  location.reload();};
+try{new BroadcastChannel('bijaycup2026_mode').onmessage=()=>location.reload();}catch(e){}
+
+/* keyboard: 1-0 record the next bid for that team (no Enter) · Enter bids for the selected team · arrows move · S/U/T */
+let lastBidKey=null,lastBidKeyAt=0;
+addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable)return;
+  if($('confirmM').classList.contains('open')){
+    if(e.key==='Enter'){$('confirmYes').click();e.preventDefault();}
+    else if(e.key==='Escape'){$('confirmNo').click();e.preventDefault();}
+    return;}
+  if($('setupM').classList.contains('open'))return;
+  if(e.key>='0'&&e.key<='9'){
+    if(e.ctrlKey||e.metaKey||e.altKey)return; /* leave browser shortcuts alone */
+    e.preventDefault();
+    if(e.repeat)return; /* held key never bids twice */
+    const i=(+e.key+9)%10,now=Date.now();
+    if(lastBidKey===e.key&&now-lastBidKeyAt<300)return; /* accidental double-tap guard */
+    lastBidKey=e.key;lastBidKeyAt=now;
+    pickedTeam=i;
+    const r=A.placeBid(i,nextAmount()); /* a bid only, never a sale; all placeBid checks still apply */
+    if(!r.ok)toast(r.err);
+    render();}
+  else if(e.key==='Enter'){if(pickedTeam!=null){const r=A.placeBid(pickedTeam,nextAmount());if(!r.ok)toast(r.err);render();}e.preventDefault();}
+  else if((e.key==='z'||e.key==='Z')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){if(!e.repeat){const r=A.undoLastBid();if(!r.ok)toast(r.err);render();}e.preventDefault();}
+  else if(e.key==='ArrowRight'){A.nextPlayer();pickedTeam=null;e.preventDefault();}
+  else if(e.key==='ArrowLeft'){A.prevPlayer();pickedTeam=null;e.preventDefault();}
+  const kk=(S().settings&&S().settings.keys)||{sold:'s',unsold:'u',timer:'t'};
+  const lk=(e.key||'').toLowerCase();
+  if(lk===kk.sold){$('soldB').click();}
+  else if(lk===kk.unsold){$('unsoldB').click();}
+  else if(lk===kk.timer){S().timer.running?A.timerPause():A.timerStart();}
+});
+
+/* timer ticking on operator side */
+setInterval(()=>{A.timerTick();const vv=AuctionStore.view();const tv=vv.timer;const cd=vv.countdown||{phase:'idle'};
+  $('timerD').textContent='00:'+String(tv.secs).padStart(2,'0');$('timerD').classList.toggle('low',tv.secs<=3);
+  $('timerNote').textContent=(cd.phase==='silent8'?'CLOSING · silent '+cd.secs+'s (screen shows nothing)':
+    cd.phase==='final3'?'BIG 3-2-1 ON SCREEN · '+(cd.secs||3):
+    cd.phase==='done'?'🔨 GAVEL - YOUR CALL: SOLD or UNSOLD':
+    tv.total+'s ANNOUNCEMENT'+(tv.running?' · RUNNING':' · STOPS ON FIRST BID'));
+  const beat=parseInt(localStorage.getItem(BEAT_KEY)||'0');
+  const live=beat&&Date.now()-beat<5000;
+  $('ledDot').style.background=live?'var(--ok)':'var(--bad)';
+  $('ledDot').style.boxShadow='0 0 8px '+(live?'var(--ok)':'var(--bad)');
+  $('ledTxt').textContent=live?'LED LIVE':'LED OFFLINE';},500);
+
+/* results sheet (printable) and backup-age chip, 31 Oct */
+$('resPrintB').onclick=()=>{
+  const st=S();const order=(st.saleOrder||[]).filter(no=>st.run[no]&&st.run[no].status==='sold');
+  const rest=Object.keys(st.run).map(Number).filter(no=>st.run[no].status==='sold'&&!order.includes(no));
+  const nos=order.concat(rest);
+  if(!nos.length){toast('No sales yet');return;}
+  const esc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const rows=nos.map((no,k)=>{const p=AuctionStore.player(no)||{};const r=st.run[no];const t=st.teams[r.soldTo];
+    return '<tr><td>'+(k+1)+'</td><td>'+esc(p.name||('#'+no))+'</td><td>'+esc(p.role||'')+'</td><td>'+esc(t?t.name:'?')+'</td><td class=r>'+Number(r.soldPrice).toLocaleString('en-IN')+'</td></tr>';}).join('');
+  const total=nos.reduce((a,no)=>a+st.run[no].soldPrice,0);
+  const w=window.open('','_blank');if(!w){toast('Allow pop-ups to print');return;}
+  w.document.write('<!doctype html><title>Bijay Cup 2026 - Results</title><style>body{font:13px Arial;margin:24px}h1{font-size:20px;margin:0 0 4px}table{border-collapse:collapse;width:100%;margin-top:12px}th,td{border:1px solid #999;padding:5px 8px;text-align:left}th{background:#eee}.r{text-align:right}tr{page-break-inside:avoid}</style><h1>Bijay Cup 2026 - Auction results</h1><div>Printed '+new Date().toLocaleString()+' &nbsp;|&nbsp; '+nos.length+' players sold &nbsp;|&nbsp; '+total.toLocaleString('en-IN')+' pts total</div><table><tr><th>#</th><th>Player</th><th>Role</th><th>Team</th><th class=r>Price (pts)</th></tr>'+rows+'</table>');
+  w.document.close();setTimeout(()=>w.print(),400);};
+function bkAge(){const lb=parseInt(localStorage.getItem('bijaycup2026_lastbackup_'+MODE)||'0');const c=$('bkChip');if(!c)return;
+  if(!lb){c.textContent='💾 NO BACKUP YET';c.style.color='#ff8a8a';return;}
+  const m=Math.floor((Date.now()-lb)/60000);c.textContent='💾 BACKUP '+(m<1?'JUST NOW':m<60?m+' MIN AGO':Math.floor(m/60)+' H '+(m%60)+' MIN AGO');c.style.color=m>=30?'#ffcf70':'';}
+$('bkChip').onclick=()=>{downloadBackup();bkAge();};
+setInterval(bkAge,20000);bkAge();
+
+AuctionStore.onChange(render);
+render();
+/* automated smoke-test hook (inert unless opened with ?selftest=1). Forced into REHEARSAL mode so it can never touch real auction data. */
+if(new URLSearchParams(location.search).get('selftest')==='1'){
+  if(localStorage.getItem('bijaycup2026_mode')!=='rehearsal'){
+    localStorage.setItem('bijaycup2026_mode','rehearsal');
+    try{new BroadcastChannel('bijaycup2026_mode').postMessage('reload');}catch(e){}
+    location.reload();
+  }else{
+    const b=document.createElement('div');
+    b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:300;background:#7a4a00;color:#fff;text-align:center;font:700 13px Inter,Arial;padding:7px;';
+    b.textContent='SELFTEST - rehearsal data only, real auction untouched. Switch back via the MODE button in SETUP when done.';
+    document.body.appendChild(b);
+    setTimeout(()=>{const p=AuctionStore.currentPlayer();if(p)AuctionStore.actions.setPlayerSet(p.no,2);},400);
+    setTimeout(()=>{AuctionStore.actions.placeBid(3,100);},700);
+    setTimeout(()=>{AuctionStore.actions.markSold();},1800);
+  }
+}
+
+</script>
+<div id="origLb" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;flex-direction:column;gap:10px" onclick="this.style.display='none'"><img style="max-width:92vw;max-height:84vh;object-fit:contain;border:2px solid #7fb7e8"><div class="cap" style="color:#cfe6ff;font:600 15px sans-serif"></div><div style="color:#7fb7e8;font:13px sans-serif">tap anywhere to close</div></div>
+</body>
+</html>
